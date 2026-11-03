@@ -373,7 +373,8 @@ class Courage:
     def run(self):
         from .ears import Ears
         from .voice import Voice
-        self.ears = Ears(os.path.join(MODELS, "whisper"),
+        big = "/cdrom/models/whisper-large-v3"  # the big, better ears, stored once on the USB/ISO
+        self.ears = Ears(big if os.path.exists(os.path.join(big, "model.bin")) else os.path.join(MODELS, "whisper"),
                          on_text=self.heard,
                          on_level=lambda lvl, talking: self.send({"t": "level", "v": round(lvl, 2), "talking": talking}))
         self.voice = Voice(os.path.join(MODELS, "voice", "voice.onnx"), self.ears)

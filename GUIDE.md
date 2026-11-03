@@ -33,7 +33,7 @@ Startup Security Utility → "No Security" + "Allow booting from external media"
 **M1 iMac / M4 MacBook Air (UTM):**
 1. UTM → Create a New Virtual Machine → **Virtualize** → **Linux**.
 2. Boot ISO image: choose `courage-os.iso` (straight from the USB is fine).
-3. Memory 4096 MB, 4 CPU cores, storage **8 GB** (this blank disk is where it saves your stuff).
+3. Memory 8192 MB (the better ears need it), 4 CPU cores, storage **8 GB** (this blank disk is where it saves your stuff).
 4. In the VM settings, turn on sound input so it can hear you, and allow the microphone when the Mac asks.
 5. Press play.
 

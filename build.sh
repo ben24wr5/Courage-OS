@@ -45,6 +45,11 @@ HF=https://huggingface.co
 for f in config.json model.bin tokenizer.json vocabulary.txt; do
   fetch "$HF/Systran/faster-whisper-base.en/resolve/main/$f" "$ASSETS/whisper/$f"
 done
+# Better ears: Whisper large-v3 (most accurate). Stored once on the ISO, shared by both chip types.
+mkdir -p "$ASSETS/whisper-large-v3"
+for f in config.json model.bin preprocessor_config.json tokenizer.json vocabulary.json; do
+  fetch "$HF/Systran/faster-whisper-large-v3/resolve/main/$f" "$ASSETS/whisper-large-v3/$f"
+done
 fetch "$HF/rhasspy/piper-voices/resolve/main/en/en_GB/alan/medium/en_GB-alan-medium.onnx" "$ASSETS/voice/voice.onnx"
 fetch "$HF/rhasspy/piper-voices/resolve/main/en/en_GB/alan/medium/en_GB-alan-medium.onnx.json" "$ASSETS/voice/voice.onnx.json"
 fetch "https://github.com/google/fonts/raw/main/ofl/dotgothic16/DotGothic16-Regular.ttf" "$ASSETS/DotGothic16.ttf"
@@ -211,6 +216,7 @@ EOF
 for a in $ARCHES; do build_arch "$a"; done
 
 # ---------------------------------------------------------------- boot menu (shared)
+mkdir -p "$ISO/models"; cp -r "$ASSETS/whisper-large-v3" "$ISO/models/"
 say "Making the boot menu"
 cat > "$ISO/boot/grub/grub.cfg" <<'EOF'
 set timeout=2
