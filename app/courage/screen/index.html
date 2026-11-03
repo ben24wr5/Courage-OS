@@ -58,11 +58,11 @@ body{font-family:Dot,monospace;color:var(--ink)}
         <label for="ws">WI-FI NETWORK</label>
         <select id="ws" style="font:inherit;font-size:2.2vh;background:rgba(0,40,36,.35);color:var(--ink);border:.4vh solid var(--ink);border-radius:1.5vh;padding:1vh 2vh"></select>
         <label for="wp">WI-FI PASSWORD</label>
-        <input id="wp" type="password" spellcheck="false">
+        <input id="wp" type="text" spellcheck="false" autocapitalize="off" style="text-transform:none">
         <button type="button" id="wj">CONNECT</button>
       </div>
       <label for="k">YOUR GEMINI API KEY (STARTS WITH AIZA)</label>
-      <input id="k" type="password" spellcheck="false">
+      <input id="k" type="text" spellcheck="false" autocapitalize="off" style="text-transform:none">
       <label for="n">YOUR NAME</label>
       <input id="n" type="text">
       <label for="c">YOUR TOWN (FOR WEATHER)</label>
@@ -99,7 +99,7 @@ function pickHide(){$('pick').style.display='none';document.body.style.cursor=''
 function pickDo(it){pickHide();ws.send(JSON.stringify({t:'picked',kind:pickKind,item:it}))}
 document.addEventListener('keydown',e=>{if(mode==='pick'){const bs=[...$('pick').children];if(e.key==='ArrowDown'){pickMark(pickSel+1);e.preventDefault()}else if(e.key==='ArrowUp'){pickMark(pickSel-1);e.preventDefault()}else if(e.key==='Escape')pickHide();else if(/^[1-9]$/.test(e.key)&&bs[+e.key-1])bs[+e.key-1].click();return}});
 document.addEventListener('keydown',e=>{wakeScreen();if(mode!=='normal')return;const t=$('type');if(t.style.display!=='block'&&e.key.length===1){t.style.display='block';$('ti').focus()}if(e.key==='Escape'){t.style.display='none';$('ti').value=''}});
-$('type').addEventListener('submit',e=>{e.preventDefault();const v=$('ti').value.trim();if(!v)return;ws.send(JSON.stringify({t:'typed',text:v}));$('ti').value='';$('ti').type='text';$('type').style.display='none'});
+$('type').addEventListener('submit',e=>{e.preventDefault();const v=$('ti').value.trim();if(!v)return;ws.send(JSON.stringify({t:'typed',text:v}));$('ti').value='';$('ti').style.textTransform='';$('type').style.display='none'});
 const bars=[...document.querySelectorAll('#bars span')];
 function on(m){
  switch(m.t){
@@ -116,7 +116,7 @@ function on(m){
  case 'body':$('body').textContent=m.text;break;
  case 'speaking':$('hint').textContent=m.on?'SPEAKING...':'';break;
  case 'photo':if(m.url){setPic(m.url);$('body').textContent=m.label}else setPic();break;
- case 'password':$('head').textContent='PASSWORD FOR '+m.ssid.toUpperCase()+'?';$('body').textContent='TYPE IT AND PRESS ENTER. I WON\'T SAY IT OUT LOUD.';$('type').style.display='block';$('ti').type='password';$('ti').focus();break;
+ case 'password':$('head').textContent='PASSWORD FOR '+m.ssid.toUpperCase()+'?';$('body').textContent='TYPE IT AND PRESS ENTER. YOU CAN SEE WHAT YOU TYPE. I WON\'T SAY IT OUT LOUD.';$('type').style.display='block';$('ti').style.textTransform='none';$('ti').focus();break;
  case 'sleep':sleep();break;
  case 'pick':wakeScreen();pickShow(m);break;
  case 'goodbye':wakeScreen();mode='bye';setPic();$('said').textContent='';typeOut($('head'),m.head,40).then(()=>typeOut($('body'),m.body,25));break;
