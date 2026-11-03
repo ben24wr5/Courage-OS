@@ -29,27 +29,40 @@ jobs:
       - name: Build courage-os.iso (Intel + Mac chips)
         run: sudo WORK=/mnt/courage-build ./build.sh
 
-      - name: Publish the ISO as a download
+      - name: Publish the ISO on the Releases page (kept forever)
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           SIZE=$(stat -c %s courage-os.iso)
           echo "ISO size: $((SIZE/1024/1024)) MB"
           TAG="build-${{ github.run_number }}"
-          if [ "$SIZE" -lt 2147483000 ]; then
-            gh release create "$TAG" courage-os.iso \
-              --title "Courage OS (build ${{ github.run_number }})" \
-              --notes "Download courage-os.iso below, flash it to a USB with balenaEtcher (or open it in UTM), then type your Claude API key on the first screen. See GUIDE.md."
-            echo "SPLIT=no" >> "$GITHUB_ENV"
+          sha256sum courage-os.iso | cut -d' ' -f1 > courage-os.iso.sha256
+          if [ "$SIZE" -lt 2000000000 ]; then
+            FILES="courage-os.iso courage-os.iso.sha256"
+            HOW="Download **courage-os.iso**."
           else
-            echo "SPLIT=yes" >> "$GITHUB_ENV"
-          fi
+            split -b 1900m -d -a 1 courage-os.iso courage-os.iso.part
+            FILES="$(ls courage-os.iso.part*) courage-os.iso.sha256"
+            HOW="GitHub only allows files under 2 GB here, so the ISO is in pieces. Download every **courage-os.iso.part** file into your Downloads folder, then open Terminal on your Mac and paste:
 
-      - name: Upload the ISO (if it was too big for a release)
-        if: env.SPLIT == 'yes'
+          \`\`\`
+          cd ~/Downloads && cat courage-os.iso.part* > courage-os.iso
+          \`\`\`
+
+          That joins them into **courage-os.iso**. (Or download it in one piece from this build's Artifacts while it lasts.)"
+          fi
+          cat > notes.md <<EOF
+          $HOW
+
+          Then flash it to your USB with balenaEtcher (or open it in UTM), connect to Wi-Fi, and type your Gemini API key on the first screen. See GUIDE.md.
+          EOF
+          sed -i 's/^          //' notes.md
+          gh release create "$TAG" $FILES --title "Courage OS (build ${{ github.run_number }})" --notes-file notes.md --latest
+
+      - name: Also offer it as one file (Artifacts, kept 90 days)
         uses: actions/upload-artifact@v4
         with:
           name: courage-os-iso
           path: courage-os.iso
           compression-level: 0
-          retention-days: 14
+          retention-days: 90
