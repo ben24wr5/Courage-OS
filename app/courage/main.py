@@ -282,6 +282,14 @@ class Courage:
         self.handle("(SYSTEM: Setup just finished. Welcome them, and in two short sentences explain they can just talk "
                     "to you, or type.)", typed=True, quiet_heard=True)
 
+    def _setup_wifi_scan(self):
+        self.send({"t": "wifi_list", "online": live.online(), "nets": [n[0] for n in system.wifi_scan()]})
+
+    def _setup_wifi_join(self, ssid, pw):
+        ok = bool(ssid) and system.wifi_connect(ssid, pw)
+        self.send({"t": "wifi_result", "ok": ok, "ssid": ssid})
+        self.send(self.status())
+
     def power_off(self):
         self.player.stop()
         self.save()
@@ -313,6 +321,11 @@ class Courage:
                 threading.Thread(target=self.handle, args=(d["text"],), kwargs={"typed": True}, daemon=True).start()
             elif d.get("t") == "setup":
                 threading.Thread(target=self.setup, args=(d,), daemon=True).start()
+            elif d.get("t") == "wifi_scan":
+                threading.Thread(target=self._setup_wifi_scan, daemon=True).start()
+            elif d.get("t") == "wifi_join":
+                threading.Thread(target=self._setup_wifi_join, args=(d.get("ssid", ""), d.get("pw", "")),
+                                 daemon=True).start()
             elif d.get("t") == "status":
                 await ws.send_str(json.dumps(self.status()))
         self.clients.discard(ws)

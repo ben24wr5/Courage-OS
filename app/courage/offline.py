@@ -52,6 +52,9 @@ def answer(text, notes):
             return {"say": f"That's {v}.", "head": f"= {v}", "body": expr}
         except Exception:
             pass
+    if "wi-fi" in t or "wifi" in t or "wi fi" in t:
+        return {"say": "Fine. Here are the Wi-Fi networks I can see.", "head": "WI-FI.", "body": "",
+                "actions": [{"type": "wifi", "cmd": "scan"}]}
     for word, act in (("play", "music"), ("music", "music"), ("pause", "pause"), ("stop", "stop"),
                       ("louder", "up"), ("quieter", "down"), ("volume up", "up"), ("volume down", "down")):
         if word in t:

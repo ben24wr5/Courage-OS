@@ -49,6 +49,14 @@ body{font-family:Dot,monospace;color:var(--ink)}
     <p class="small" id="hint"></p>
     <form id="setup" autocomplete="off">
       <p class="big" style="font-size:4.5vh">FIRST, MY BRAIN.</p>
+      <div id="wifi" style="display:none;flex-direction:column;gap:1.2vh;border:.4vh dashed var(--ink);border-radius:2vh;padding:2vh">
+        <p class="small" id="wmsg" style="color:var(--ink)">NO INTERNET YET. PICK YOUR WI-FI:</p>
+        <label for="ws">WI-FI NETWORK</label>
+        <select id="ws" style="font:inherit;font-size:2.6vh;background:rgba(0,40,36,.35);color:var(--ink);border:.4vh solid var(--ink);border-radius:1.5vh;padding:1vh 2vh"></select>
+        <label for="wp">WI-FI PASSWORD</label>
+        <input id="wp" type="password" spellcheck="false">
+        <button type="button" id="wj">CONNECT</button>
+      </div>
       <label for="k">YOUR GEMINI API KEY (STARTS WITH AIZA)</label>
       <input id="k" type="password" spellcheck="false">
       <label for="n">YOUR NAME</label>
@@ -74,8 +82,9 @@ function wakeScreen(){idle=Date.now();if(sleeping){sleeping=false;$('head').clas
 function sleep(){sleeping=true;$('said').textContent='';$('body').textContent='';$('pic').style.display='none';$('head').className='big huge zzz';$('head').textContent='Z Z Z . . .'}
 function setPic(url,svg){const p=$('pic');p.innerHTML='';if(svg){p.innerHTML=svg;p.style.display='block'}else if(url){const i=new Image();i.alt='';i.onload=()=>{p.style.display='block'};i.onerror=()=>{p.style.display='none'};i.src=url;p.appendChild(i);p.style.display='none'}else p.style.display='none'}
 function status(s){const b=s.battery==null?'':(' ● '+(s.charging?'⚡':'')+s.battery+'%');$('stat').textContent=(s.wifi?'WI-FI':'OFFLINE')+(s.bt?' ● BT':'')+b;$('mood').textContent='MOOD: '+(s.mood||'grumpy').toUpperCase();document.documentElement.style.setProperty('--screen',(s.colour&&s.colour!=='default'&&/^#[0-9a-f]{3,8}$/i.test(s.colour))?s.colour:'#3f9d92')}
-function setupMode(err){mode='setup';$('setup').style.display='flex';['said','head','body','hint'].forEach(i=>$(i).style.display='none');$('pic').style.display='none';$('bars').style.display='none';$('err').textContent=err||'';$('k').focus()}
+function setupMode(err){if(mode!=='setup')ws.send('{"t":"wifi_scan"}');mode='setup';$('setup').style.display='flex';['said','head','body','hint'].forEach(i=>$(i).style.display='none');$('pic').style.display='none';$('bars').style.display='none';$('err').textContent=err||'';$('k').focus()}
 function normalMode(){mode='normal';$('setup').style.display='none';['said','head','body','hint'].forEach(i=>$(i).style.display='');$('bars').style.display=''}
+$('wj').addEventListener('click',()=>{$('wmsg').textContent='CONNECTING...';ws.send(JSON.stringify({t:'wifi_join',ssid:$('ws').value,pw:$('wp').value}))});
 $('setup').addEventListener('submit',e=>{e.preventDefault();$('err').textContent='CHECKING YOUR KEY...';ws.send(JSON.stringify({t:'setup',key:$('k').value,name:$('n').value,city:$('c').value}))});
 document.addEventListener('keydown',e=>{wakeScreen();if(mode!=='normal')return;const t=$('type');if(t.style.display!=='block'&&e.key.length===1){t.style.display='block';$('ti').focus()}if(e.key==='Escape'){t.style.display='none';$('ti').value=''}});
 $('type').addEventListener('submit',e=>{e.preventDefault();const v=$('ti').value.trim();if(!v)return;ws.send(JSON.stringify({t:'typed',text:v}));$('ti').value='';$('ti').type='text';$('type').style.display='none'});
@@ -86,6 +95,8 @@ function on(m){
  case 'wake':wakeScreen();$('said').textContent='';$('body').textContent='';setPic();$('head').className='big huge';typeOut($('head'),m.head,110).then(()=>{$('head').className='big';typeOut($('body'),m.line,50)});$('hint').textContent='COURAGE OS';break;
  case 'setup':setupMode(m.error);break;
  case 'ready':normalMode();break;
+ case 'wifi_list':if(m.online){$('wifi').style.display='none';break}$('wifi').style.display='flex';$('ws').innerHTML='';(m.nets.length?m.nets:['(NONE FOUND)']).forEach(n=>{const o=document.createElement('option');o.textContent=n;o.value=n;$('ws').appendChild(o)});break;
+ case 'wifi_result':if(m.ok){$('wifi').style.display='none';$('err').textContent='CONNECTED TO '+m.ssid.toUpperCase()+'. NOW TYPE YOUR KEY.';$('k').focus()}else{$('wmsg').textContent='THAT DIDN\'T WORK. CHECK THE PASSWORD AND TRY AGAIN.'}break;
  case 'level':if(m.talking)wakeScreen();bars.forEach((b,i)=>b.style.height=(1.4+m.v*(i===2?6:i%2?4:2.5))+'vh');$('bars').classList.toggle('on',m.talking);break;
  case 'heard':wakeScreen();$('said').textContent='YOU SAID: "'+m.text+'"';break;
  case 'thinking':$('hint').textContent='THINKING...';break;
