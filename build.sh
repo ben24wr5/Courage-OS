@@ -86,9 +86,8 @@ deb $MIRROR $SUITE-updates main restricted universe multiverse
 deb $MIRROR $SUITE-security main restricted universe multiverse
 EOF
 
-  # Macs (UTM) only need the small virtual-machine kernel; PCs need the full one plus drivers.
-  local EXTRA="linux-image-virtual"
-  [ "$ARCH" = amd64 ] && EXTRA="linux-image-generic linux-firmware intel-microcode amd64-microcode"
+  local EXTRA=""
+  [ "$ARCH" = amd64 ] && EXTRA="linux-firmware intel-microcode amd64-microcode"
 
   say "[$ARCH] Installing the system, sound, Wi-Fi, Bluetooth and the Courage OS app"
   cat > "$R/tmp/inside.sh" <<EOF
@@ -107,7 +106,7 @@ path-include=/usr/share/locale/locale.alias
 X
 apt-get update -qq
 apt-get install -y -qq --no-install-recommends \
-  casper initramfs-tools systemd-sysv udev dbus dbus-user-session sudo locales tzdata kbd \
+  linux-image-generic casper initramfs-tools systemd-sysv udev dbus dbus-user-session sudo locales tzdata kbd \
   network-manager wpasupplicant iw wireless-regdb bluez \
   pipewire pipewire-pulse pipewire-alsa wireplumber libspa-0.2-bluetooth alsa-ucm-conf \
   cage libgtk-3-0 python3 python3-venv python3-pip python3-gi gir1.2-gtk-3.0 gir1.2-webkit2-4.1 python3-evdev \
@@ -184,15 +183,6 @@ grub-mkstandalone -O $CPU-efi -o /tmp/grub.efi \
   --modules="part_gpt part_msdos iso9660 fat search search_fs_file normal linux configfile echo test all_video gfxterm" \
   "boot/grub/grub.cfg=/tmp/embed.cfg"
 
-# Slim it so the whole ISO fits in one file under 2 GB:
-# drop firmware for server cards, phones and NVIDIA (the screen still works without it),
-# keep Wi-Fi, Bluetooth and Intel/AMD graphics.
-cd /lib/firmware 2>/dev/null && rm -rf nvidia mellanox netronome qed liquidio cxgb4 mrvl qcom dpaa2 bnx2x \
-  ql2* phanfw* myri10ge* cbfw* ctfw* intel/ipu intel/vpu amdtee mediatek/mt8* ti-keystone vsc 2>/dev/null; cd /
-find /opt/courage/venv -name '__pycache__' -prune -exec rm -rf {} + 2>/dev/null || true
-find /opt/courage/venv -type d -name tests -prune -exec rm -rf {} + 2>/dev/null || true
-rm -rf /usr/share/doc/* /usr/src/* /var/cache/* 2>/dev/null || true
-echo COMPRESS=xz > /etc/initramfs-tools/conf.d/courage-small
 update-initramfs -c -k all >/dev/null 2>&1 || update-initramfs -u -k all
 apt-get clean
 rm -f /usr/sbin/policy-rc.d /etc/resolv.conf
@@ -213,7 +203,7 @@ EOF
   for (( i=${#mounts[@]}-1; i>=0; i-- )); do umount -lf "${mounts[$i]}" || true; done
   mounts=()
   rm -f "$ISO/casper/$CPU/filesystem.squashfs"
-  mksquashfs "$R" "$ISO/casper/$CPU/filesystem.squashfs" -comp xz -b 1M -Xdict-size 100% -noappend -quiet \
+  mksquashfs "$R" "$ISO/casper/$CPU/filesystem.squashfs" -comp xz -noappend -quiet \
     -e .base-done boot/grub
   du -sx --block-size=1 "$R" | cut -f1 > "$ISO/casper/$CPU/filesystem.size"
 }
