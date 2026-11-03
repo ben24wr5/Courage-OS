@@ -79,9 +79,9 @@ body{font-family:Dot,monospace;color:var(--ink)}
 const $=id=>document.getElementById(id);
 let ws,idle=Date.now(),sleeping=false,mode='normal',ac=null;
 const mid=$('mid');
-function beep(f=1200,d=.015){try{ac=ac||new AudioContext();if(ac.state==='suspended')ac.resume();const t=ac.currentTime,o=ac.createOscillator(),g=ac.createGain();o.type='triangle';o.frequency.setValueAtTime(f*.55,t);o.frequency.exponentialRampToValueAtTime(f,t+.035);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.05,t+.006);g.gain.exponentialRampToValueAtTime(.0001,t+.07);o.connect(g);g.connect(ac.destination);o.start(t);o.stop(t+.08)}catch(e){}}
+function beep(f=1200,d=.015){}
 let typing=0;
-async function typeOut(el,text,speed=38){const id=++typing;el.textContent='';for(let i=1;i<=text.length;i++){if(id!==typing)return;el.textContent=text.slice(0,i);if(i%3===1)beep(900+Math.random()*500);await new Promise(r=>setTimeout(r,speed))}}
+async function typeOut(el,text,speed=38){const id=++typing;el.textContent='';for(let i=1;i<=text.length;i++){if(id!==typing)return;el.textContent=text.slice(0,i);await new Promise(r=>setTimeout(r,speed))}}
 function clockTick(){const d=new Date();$('clk').textContent=d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'}).toUpperCase()+' · '+d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});if(!sleeping&&mode==='normal'&&Date.now()-idle>5*60e3)sleep()}
 setInterval(clockTick,1000);clockTick();
 function wakeScreen(){idle=Date.now();if(sleeping){sleeping=false;$('head').classList.remove('zzz','huge')}}
