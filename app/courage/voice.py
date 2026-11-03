@@ -33,15 +33,23 @@ class Voice:
                     ok = r.returncode == 0 and os.path.exists(wav)
                 if not ok:
                     subprocess.run(["espeak-ng", "-v", "en-gb", "-w", wav, text], timeout=60)
-                self.proc = subprocess.Popen(["pw-play", wav])
+                play = wav
+                robot = wav + ".robot.wav"
+                # AI computer sound: a bit deeper, with a light metallic shimmer
+                r2 = subprocess.run(["sox", wav, robot, "pitch", "-120", "flanger", "2", "1", "0", "30", "0.6", "sin",
+                                     "echo", "0.8", "0.7", "12", "0.25", "gain", "-n", "-1"], capture_output=True, timeout=30)
+                if r2.returncode == 0 and os.path.exists(robot):
+                    play = robot
+                self.proc = subprocess.Popen(["pw-play", play])
                 self.proc.wait()
             except Exception as e:
                 print("voice error:", e, flush=True)
             finally:
-                try:
-                    os.remove(wav)
-                except OSError:
-                    pass
+                for f in (wav, wav + ".robot.wav"):
+                    try:
+                        os.remove(f)
+                    except OSError:
+                        pass
                 if self.ears:
                     self.ears.muted.clear()
                 if done:

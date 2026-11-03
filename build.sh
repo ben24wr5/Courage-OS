@@ -110,7 +110,7 @@ apt-get install -y -qq --no-install-recommends \
   network-manager wpasupplicant iw wireless-regdb bluez \
   pipewire pipewire-pulse pipewire-alsa wireplumber libspa-0.2-bluetooth alsa-ucm-conf \
   cage libgtk-3-0 python3 python3-venv python3-pip python3-gi gir1.2-gtk-3.0 gir1.2-webkit2-4.1 python3-evdev \
-  libportaudio2 mpv espeak-ng brightnessctl gdisk fdisk util-linux e2fsprogs curl ca-certificates \
+  libportaudio2 mpv espeak-ng sox brightnessctl gdisk fdisk util-linux e2fsprogs curl ca-certificates \
   fonts-dejavu-core mesa-utils libgl1-mesa-dri plymouth-theme-spinner $EXTRA
 locale-gen en_GB.UTF-8 >/dev/null; update-locale LANG=en_GB.UTF-8
 ln -sf /usr/share/zoneinfo/Europe/London /etc/localtime
