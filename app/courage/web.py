@@ -23,7 +23,7 @@ def _cached(key, seconds, fn):
 
 def online():
     try:
-        requests.head("https://api.anthropic.com", timeout=3, headers=UA)
+        requests.head("https://generativelanguage.googleapis.com", timeout=3, headers=UA)
         return True
     except Exception:
         return False

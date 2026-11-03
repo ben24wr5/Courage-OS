@@ -1,4 +1,4 @@
-"""Spare brain for when there's no internet: handles simple things without Claude."""
+"""Spare brain for when there's no internet: handles simple things without Gemini."""
 import ast
 import datetime
 import operator

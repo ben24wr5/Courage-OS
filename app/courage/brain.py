@@ -1,13 +1,16 @@
-"""The brain: talks to Claude through the API and turns answers into screen + speech + actions."""
+"""The brain: talks to Google Gemini through its API and turns answers into screen + speech + actions."""
 import json
 import re
 
-try:
-    import anthropic
-except ImportError:  # offline test environments
-    anthropic = None
+import requests
 
-MODEL = "claude-sonnet-5-5"
+MODEL = "gemini-flash-latest"
+URL = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
+
+
+class KeyError_(Exception):
+    """The Gemini API key is missing or wrong."""
+
 
 MOODS = {
     "grumpy": "Grumpy, sarcastic and posh British, like a fed-up old attic computer. Mock the user a little first, then genuinely help.",
@@ -66,32 +69,50 @@ ACTIONS you can use (only when the user asks):
 
 
 class Brain:
+    """Talks to Google Gemini through its API (key from aistudio.google.com)."""
+
     def __init__(self, api_key):
-        self.api_key = api_key
-        self.client = anthropic.Anthropic(api_key=api_key) if (anthropic and api_key) else None
+        self.api_key = (api_key or "").strip()
         self.history = []
 
     def reset(self):
         self.history = []
 
+    def _call(self, contents, system=None, max_tokens=1500, json_mode=True):
+        if not self.api_key:
+            raise KeyError_("no api key")
+        body = {"contents": contents,
+                "generationConfig": {"maxOutputTokens": max_tokens, "temperature": 0.9}}
+        if json_mode:
+            body["generationConfig"]["responseMimeType"] = "application/json"
+        if system:
+            body["systemInstruction"] = {"parts": [{"text": system}]}
+        r = requests.post(URL.format(model=MODEL), json=body, timeout=60,
+                          headers={"x-goog-api-key": self.api_key, "Content-Type": "application/json"})
+        if r.status_code in (400, 401, 403) and ("API_KEY" in r.text or "API key" in r.text or r.status_code != 400):
+            raise KeyError_("api key rejected: " + r.text[:200])
+        r.raise_for_status()
+        data = r.json()
+        try:
+            return "".join(p.get("text", "") for p in data["candidates"][0]["content"]["parts"])
+        except (KeyError, IndexError):
+            return '{"say": "Hmm. I\'d rather not answer that one.", "head": "HMM. NO."}'
+
     def ask(self, text, ctx):
-        if not self.client:
-            raise RuntimeError("no api key")
         mood = ctx.get("mood", "grumpy")
         system = SYSTEM.format(mood=mood, mood_text=MOODS.get(mood, MOODS["grumpy"]), **{
             k: ctx.get(k, "unknown") for k in
             ("now", "user", "memory", "notes", "battery", "online", "bt", "city", "weather", "news", "music", "photos")})
-        self.history.append({"role": "user", "content": text})
+        self.history.append({"role": "user", "parts": [{"text": text}]})
         self.history = self.history[-20:]
         while self.history and self.history[0]["role"] != "user":
             self.history.pop(0)
-        msg = self.client.messages.create(model=MODEL, max_tokens=1500, system=system, messages=self.history)
-        raw = "".join(b.text for b in msg.content if getattr(b, "type", "") == "text")
-        self.history.append({"role": "assistant", "content": raw})
+        raw = self._call(self.history, system=system)
+        self.history.append({"role": "model", "parts": [{"text": raw}]})
         return parse_reply(raw)
 
     def check_key(self):
-        self.client.messages.create(model=MODEL, max_tokens=5, messages=[{"role": "user", "content": "hi"}])
+        self._call([{"role": "user", "parts": [{"text": "Say hi"}]}], max_tokens=20, json_mode=False)
 
 
 def parse_reply(raw):

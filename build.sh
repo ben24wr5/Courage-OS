@@ -119,7 +119,7 @@ echo courage-os > /etc/hostname
 # Python brain/ears/voice
 python3 -m venv /opt/courage/venv
 /opt/courage/venv/bin/pip install -q --upgrade pip
-/opt/courage/venv/bin/pip install -q --no-cache-dir anthropic aiohttp requests numpy sounddevice faster-whisper "piper-tts==1.3.0"
+/opt/courage/venv/bin/pip install -q --no-cache-dir aiohttp requests numpy sounddevice faster-whisper "piper-tts==1.3.0"
 
 # Boot straight into the green screen
 mkdir -p /etc/systemd/system/getty@tty1.service.d
@@ -241,4 +241,4 @@ xorriso -as mkisofs -iso-level 3 -full-iso9660-filenames -joliet -joliet-long -r
   -output "$OUT" "$ISO"
 
 say "Done!  $(du -h "$OUT" | cut -f1)  ->  $OUT"
-echo "Next: put it on a USB stick (see GUIDE.md), boot it, then type your Claude API key on the first screen."
+echo "Next: put it on a USB stick (see GUIDE.md), boot it, then type your Gemini API key on the first screen."

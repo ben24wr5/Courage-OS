@@ -1,4 +1,4 @@
-# Courage OS — how to build it, run it, and add your API key
+# Courage OS — how to build it, run it, and add your Gemini API key
 
 ## 1. Build the ISO (one command, in the Mac Terminal)
 
@@ -39,19 +39,16 @@ Startup Security Utility → "No Security" + "Allow booting from external media"
 
 The first start makes its storage space and restarts once. That's normal.
 
-## 4. Add your API key (the brain)
+## 4. Add your Gemini API key (the brain)
 
-1. Go to **console.anthropic.com** on any device and sign up or log in.
-2. Add a little credit under **Billing**. It's pay as you go, so you only pay for what you use.
-3. Go to **API Keys** → **Create Key**, name it "Courage OS", and copy it. It starts with `sk-ant-`.
-4. Start Courage OS. The first screen says **FIRST, MY BRAIN.**
-5. Type the key into the top box, plus your name and town (for the weather), then press **WAKE UP**.
+1. On any device, go to **aistudio.google.com** and sign in with your Google account.
+2. Click **Get API key** → **Create API key**, and copy it. It starts with `AIza`.
+   The free tier is enough for normal use; no card needed.
+3. Start Courage OS. The first screen says **FIRST, MY BRAIN.**
+4. Type the key into the top box, plus your name and town (for the weather), then press **WAKE UP**.
 
 It checks the key straight away. If it says the key didn't work, check for typos and that you're online.
-The key is saved on the USB (or the UTM disk), so you only do this once. **Never share the key, and don't
-put it in the ISO**: anyone with the ISO would have your key.
-
-To change the key later, delete it at console.anthropic.com. Courage OS will then ask for a new one.
+The key is saved on the USB (or the UTM disk), so you only do this once. **Never share the key.**
 
 ## 5. Using it
 
@@ -67,7 +64,7 @@ To change the key later, delete it at console.anthropic.com. Courage OS will the
 ## Good to know
 
 * With no internet it switches to its spare brain: time, date, notes, sums, music and volume only.
-* "Make pictures" draws simple pictures using Claude. Photos for answers come from Wikimedia Commons.
+* "Make pictures" draws simple pictures using Gemini. Photos for answers come from Wikimedia Commons.
 * Weather comes from Open-Meteo, news from BBC headlines and radio from radio-browser.info. All free, no extra keys.
 * "Multiple users" switches when you tell it ("it's my sister now"). It can't tell voices apart by itself.
 * "Updates" needs an update address set up. Without one, rebuild the ISO to get a new version.

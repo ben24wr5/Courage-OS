@@ -10,7 +10,7 @@ import threading
 from aiohttp import web
 
 from . import offline, system, web as live
-from .brain import Brain, MOODS
+from .brain import Brain, MOODS, KeyError_
 
 BASE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.expanduser("~/.courage")
@@ -123,9 +123,8 @@ class Courage:
                     r = self.brain.ask(text, self.context(is_online))
                 except Exception as e:
                     print("brain error:", e, flush=True)
-                    msg = str(e).lower()
-                    if "auth" in msg or "401" in msg or "api key" in msg:
-                        self.show("MY BRAIN KEY IS WRONG.", "RE-ENTER YOUR CLAUDE API KEY.", say="My brain key isn't working.")
+                    if isinstance(e, KeyError_):
+                        self.show("MY BRAIN KEY IS WRONG.", "RE-ENTER YOUR GEMINI API KEY.", say="My brain key isn't working.")
                         self.send({"t": "setup"})
                         return
                     r = offline.answer(text, self.me["notes"])
