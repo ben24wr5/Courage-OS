@@ -49,7 +49,7 @@ jobs:
           cd ~/Downloads && cat courage-os.iso.part* > courage-os.iso
           \`\`\`
 
-          That joins them into **courage-os.iso**. (Or download it in one piece from this build's Artifacts while it lasts.)"
+          That joins them into **courage-os.iso**. (Or download it as one full **courage-os.iso**, no zip, from this build's Artifacts on the Actions page.)"
           fi
           cat > notes.md <<EOF
           $HOW
@@ -59,10 +59,9 @@ jobs:
           sed -i 's/^          //' notes.md
           gh release create "$TAG" $FILES --title "Courage OS (build ${{ github.run_number }})" --notes-file notes.md --latest
 
-      - name: Also offer it as one file (Artifacts, kept 90 days)
-        uses: actions/upload-artifact@v4
+      - name: Offer it as ONE full courage-os.iso (no zip, kept 90 days)
+        uses: actions/upload-artifact@v7
         with:
-          name: courage-os-iso
           path: courage-os.iso
-          compression-level: 0
+          archive: false
           retention-days: 90
