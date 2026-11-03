@@ -1,0 +1,55 @@
+name: Build Courage OS ISO
+
+on:
+  push:
+    branches: [main]
+    paths-ignore: ["**.md"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: build-iso
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Make room on the build computer
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache /usr/local/share/boost /usr/local/.ghcup
+          sudo docker image prune -af >/dev/null 2>&1 || true
+          df -h / /mnt
+
+      - name: Build courage-os.iso (Intel + Mac chips)
+        run: sudo WORK=/mnt/courage-build ./build.sh
+
+      - name: Publish the ISO as a download
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          SIZE=$(stat -c %s courage-os.iso)
+          echo "ISO size: $((SIZE/1024/1024)) MB"
+          TAG="build-${{ github.run_number }}"
+          if [ "$SIZE" -lt 2147483000 ]; then
+            gh release create "$TAG" courage-os.iso \
+              --title "Courage OS (build ${{ github.run_number }})" \
+              --notes "Download courage-os.iso below, flash it to a USB with balenaEtcher (or open it in UTM), then type your Claude API key on the first screen. See GUIDE.md."
+            echo "SPLIT=no" >> "$GITHUB_ENV"
+          else
+            echo "SPLIT=yes" >> "$GITHUB_ENV"
+          fi
+
+      - name: Upload the ISO (if it was too big for a release)
+        if: env.SPLIT == 'yes'
+        uses: actions/upload-artifact@v4
+        with:
+          name: courage-os-iso
+          path: courage-os.iso
+          compression-level: 0
+          retention-days: 14
