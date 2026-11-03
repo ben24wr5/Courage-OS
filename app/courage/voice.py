@@ -35,8 +35,8 @@ class Voice:
                     subprocess.run(["espeak-ng", "-v", "en-gb", "-w", wav, text], timeout=60)
                 play = wav
                 robot = wav + ".robot.wav"
-                # AI computer sound: a bit deeper, with a light metallic shimmer, no echo
-                r2 = subprocess.run(["sox", wav, robot, "pitch", "-120", "flanger", "2", "1", "0", "30", "0.6", "sin",
+                # Cartoon computer voice: higher and bouncier, a quick pace, light metallic shimmer, no echo
+                r2 = subprocess.run(["sox", wav, robot, "pitch", "280", "tempo", "1.08", "flanger", "1", "1", "0", "20", "0.4", "sin",
                                      "gain", "-n", "-1"], capture_output=True, timeout=30)
                 if r2.returncode == 0 and os.path.exists(robot):
                     play = robot
