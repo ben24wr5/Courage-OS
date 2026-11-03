@@ -30,6 +30,9 @@ body{font-family:Dot,monospace;color:var(--ink)}
 #setup input{font:inherit;font-size:2.8vh;letter-spacing:.06em;background:rgba(0,40,36,.35);color:var(--ink);border:.4vh solid var(--ink);border-radius:1.5vh;padding:1.2vh 2vh;outline:none;width:100%}
 #setup button{font:inherit;font-size:2.8vh;letter-spacing:.15em;background:var(--ink);color:#1e4d47;border:0;border-radius:999px;padding:1.4vh 4vh;cursor:pointer;align-self:center}
 #err{color:#ffd0c0;min-height:3vh}
+#pick{display:none;flex-direction:column;gap:1.2vh;width:min(70vw,800px)}
+#pick button{font:inherit;font-size:3vh;letter-spacing:.1em;display:flex;justify-content:space-between;gap:2vw;text-align:left;background:rgba(0,40,36,.3);color:var(--ink);border:.4vh solid var(--ink);border-radius:999px;padding:1.2vh 3vh;cursor:pointer}
+#pick button.sel,#pick button:focus{background:var(--ink);color:#1e4d47;outline:none}
 @keyframes pop{from{transform:scale(.6);opacity:.2}to{transform:scale(1);opacity:1}}
 .off #scr{background:#000!important;box-shadow:none}
 .off #bar,.off #mid,.off #type{visibility:hidden}
@@ -46,6 +49,7 @@ body{font-family:Dot,monospace;color:var(--ink)}
     <div id="pic"></div>
     <p class="body" id="body"></p>
     <div id="bars" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
+    <div id="pick" role="listbox" aria-label="Pick one"></div>
     <p class="small" id="hint"></p>
     <form id="setup" autocomplete="off">
       <p class="big" style="font-size:4.5vh">FIRST, MY BRAIN.</p>
@@ -86,6 +90,14 @@ function setupMode(err){if(mode!=='setup')ws.send('{"t":"wifi_scan"}');mode='set
 function normalMode(){mode='normal';$('setup').style.display='none';['said','head','body','hint'].forEach(i=>$(i).style.display='');$('bars').style.display=''}
 $('wj').addEventListener('click',()=>{$('wmsg').textContent='CONNECTING...';ws.send(JSON.stringify({t:'wifi_join',ssid:$('ws').value,pw:$('wp').value}))});
 $('setup').addEventListener('submit',e=>{e.preventDefault();$('err').textContent='CHECKING YOUR KEY...';ws.send(JSON.stringify({t:'setup',key:$('k').value,name:$('n').value,city:$('c').value}))});
+let pickKind='',pickSel=0;
+function pickShow(m){pickKind=m.kind;pickSel=0;const p=$('pick');p.innerHTML='';$('head').textContent=m.title;$('body').textContent='ARROW KEYS + ENTER, OR CLICK. ESC TO CANCEL.';setPic();
+ m.items.forEach((it,i)=>{const b=document.createElement('button');b.type='button';const a=document.createElement('span');a.textContent=(i+1)+'. '+it.toUpperCase();b.appendChild(a);if(m.notes){const n=document.createElement('span');n.textContent=m.notes[i];b.appendChild(n)}b.onclick=()=>pickDo(it);b.onmouseenter=()=>pickMark(i);p.appendChild(b)});
+ p.style.display='flex';document.body.style.cursor='default';mode='pick';pickMark(0)}
+function pickMark(i){const bs=[...$('pick').children];if(!bs.length)return;pickSel=(i+bs.length)%bs.length;bs.forEach((b,k)=>b.classList.toggle('sel',k===pickSel));bs[pickSel].focus()}
+function pickHide(){$('pick').style.display='none';document.body.style.cursor='';mode='normal'}
+function pickDo(it){pickHide();ws.send(JSON.stringify({t:'picked',kind:pickKind,item:it}))}
+document.addEventListener('keydown',e=>{if(mode==='pick'){const bs=[...$('pick').children];if(e.key==='ArrowDown'){pickMark(pickSel+1);e.preventDefault()}else if(e.key==='ArrowUp'){pickMark(pickSel-1);e.preventDefault()}else if(e.key==='Escape')pickHide();else if(/^[1-9]$/.test(e.key)&&bs[+e.key-1])bs[+e.key-1].click();return}});
 document.addEventListener('keydown',e=>{wakeScreen();if(mode!=='normal')return;const t=$('type');if(t.style.display!=='block'&&e.key.length===1){t.style.display='block';$('ti').focus()}if(e.key==='Escape'){t.style.display='none';$('ti').value=''}});
 $('type').addEventListener('submit',e=>{e.preventDefault();const v=$('ti').value.trim();if(!v)return;ws.send(JSON.stringify({t:'typed',text:v}));$('ti').value='';$('ti').type='text';$('type').style.display='none'});
 const bars=[...document.querySelectorAll('#bars span')];
@@ -106,6 +118,7 @@ function on(m){
  case 'photo':if(m.url){setPic(m.url);$('body').textContent=m.label}else setPic();break;
  case 'password':$('head').textContent='PASSWORD FOR '+m.ssid.toUpperCase()+'?';$('body').textContent='TYPE IT AND PRESS ENTER. I WON\'T SAY IT OUT LOUD.';$('type').style.display='block';$('ti').type='password';$('ti').focus();break;
  case 'sleep':sleep();break;
+ case 'pick':wakeScreen();pickShow(m);break;
  case 'goodbye':wakeScreen();mode='bye';setPic();$('said').textContent='';typeOut($('head'),m.head,40).then(()=>typeOut($('body'),m.body,25));break;
  case 'off':document.body.classList.add('off');break;
  }}

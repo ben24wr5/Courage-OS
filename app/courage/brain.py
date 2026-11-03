@@ -57,8 +57,8 @@ ACTIONS you can use (only when the user asks):
 {{"type":"radio","cmd":"play|stop","query":"station or genre"}}
 {{"type":"photos","cmd":"show|next|back|stop"}}
 {{"type":"volume","value":"up|down|mute|0-100"}}  {{"type":"brightness","value":"up|down|0-100"}}
-{{"type":"wifi","cmd":"scan|connect","ssid":"..."}}
-{{"type":"bluetooth","cmd":"scan|connect|disconnect","name":"..."}}
+{{"type":"wifi","cmd":"scan"}}  (shows a list they pick from; always use scan for Wi-Fi)
+{{"type":"bluetooth","cmd":"scan|disconnect","name":"..."}}  (scan shows a list they pick from; use scan to connect something)
 {{"type":"colour","value":"#hex colour for the screen background, or 'default'"}}
 {{"type":"mood","value":"grumpy|nice|extra rude"}}
 {{"type":"user","name":"name of the person now using it"}}

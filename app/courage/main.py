@@ -218,12 +218,19 @@ class Courage:
                 self.send({"t": "password", "ssid": a["ssid"]})
             else:
                 nets = system.wifi_scan()
-                self.send({"t": "body", "text": "FOUND: " + ", ".join(n[0] for n in nets) if nets else "NO WI-FI FOUND."})
+                if nets:
+                    self.send({"t": "pick", "kind": "wifi", "title": "PICK YOUR WI-FI:",
+                               "items": [n[0] for n in nets], "notes": [f"{n[1]}%" for n in nets]})
+                else:
+                    self.send({"t": "body", "text": "NO WI-FI FOUND."})
         elif t == "bluetooth":
             cmd = a.get("cmd", "scan")
             if cmd == "scan":
                 names = system.bt("scan")
-                self.send({"t": "body", "text": ("FOUND: " + ", ".join(names[:8])) if names else "NOTHING FOUND. PUT IT IN PAIRING MODE."})
+                if names:
+                    self.send({"t": "pick", "kind": "bt", "title": "PICK WHAT TO CONNECT:", "items": names[:10]})
+                else:
+                    self.send({"t": "body", "text": "NOTHING FOUND. PUT IT IN PAIRING MODE AND SAY 'SCAN BLUETOOTH' AGAIN."})
             else:
                 ok = system.bt(cmd, a.get("name", ""))
                 self.send({"t": "body", "text": ("DONE." if ok else "COULDN'T FIND IT. SAY 'SCAN BLUETOOTH' FIRST.")})
@@ -240,6 +247,24 @@ class Courage:
             threading.Thread(target=self._update, daemon=True).start()
         elif t == "screensaver":
             self.send({"t": "sleep"})
+
+    def picked(self, kind, item):
+        if not item:
+            return
+        if kind == "wifi":
+            self.wifi_pending = item
+            self.send({"t": "password", "ssid": item})
+            self.voice.say("Type the password. I won't say it out loud.")
+        elif kind == "bt":
+            self.send({"t": "show", "head": "CONNECTING...", "body": item.upper(), "pic": None, "svg": ""})
+            ok = system.bt("connect", item)
+            if ok:
+                self.show("CONNECTED.", f"{item.upper()}. SOUND NOW PLAYS THROUGH IT. NEXT TIME IT CONNECTS BY ITSELF.",
+                          say="Connected.")
+            else:
+                self.show("THAT DIDN'T WORK.", "IS IT STILL IN PAIRING MODE? SAY 'SCAN BLUETOOTH' TO TRY AGAIN.",
+                          say="That didn't work. Is it still in pairing mode?")
+            self.send(self.status())
 
     def _finish_wifi(self, password):
         ssid, self.wifi_pending = self.wifi_pending, None
@@ -326,6 +351,8 @@ class Courage:
             elif d.get("t") == "wifi_join":
                 threading.Thread(target=self._setup_wifi_join, args=(d.get("ssid", ""), d.get("pw", "")),
                                  daemon=True).start()
+            elif d.get("t") == "picked":
+                threading.Thread(target=self.picked, args=(d.get("kind"), d.get("item", "")), daemon=True).start()
             elif d.get("t") == "status":
                 await ws.send_str(json.dumps(self.status()))
         self.clients.discard(ws)
