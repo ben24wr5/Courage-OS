@@ -240,5 +240,8 @@ xorriso -as mkisofs -iso-level 3 -full-iso9660-filenames -joliet -joliet-long -r
   -e '--interval:appended_partition_2:all::' -no-emul-boot \
   -output "$OUT" "$ISO"
 
+MAX=$((9*1000*1000*1000))
+SIZE=$(stat -c %s "$OUT")
+[ "$SIZE" -lt "$MAX" ] || die "The ISO is $((SIZE/1000/1000)) MB, over the 9 GB limit."
 say "Done!  $(du -h "$OUT" | cut -f1)  ->  $OUT"
 echo "Next: put it on a USB stick (see GUIDE.md), boot it, then type your Gemini API key on the first screen."
