@@ -37,9 +37,14 @@ class Voice:
                 robot = wav + ".robot.wav"
                 # Cartoon computer voice: higher and bouncier, a quick pace, light metallic shimmer, no echo
                 r2 = subprocess.run(["sox", wav, robot, "pitch", "280", "tempo", "1.08", "flanger", "1", "1", "0", "20", "0.4", "sin",
-                                     "gain", "-n", "-1"], capture_output=True, timeout=30)
+                                     "gain", "-n", "-1", "fade", "t", "0.03", "-0", "0.08", "pad", "0.08", "0.08"], capture_output=True, timeout=30)
                 if r2.returncode == 0 and os.path.exists(robot):
                     play = robot
+                else:
+                    r3 = subprocess.run(["sox", wav, robot, "fade", "t", "0.03", "-0", "0.08", "pad", "0.08", "0.08"],
+                                        capture_output=True, timeout=30)
+                    if r3.returncode == 0 and os.path.exists(robot):
+                        play = robot
                 self.proc = subprocess.Popen(["pw-play", play])
                 self.proc.wait()
             except Exception as e:
