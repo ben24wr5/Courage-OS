@@ -45,10 +45,10 @@ HF=https://huggingface.co
 for f in config.json model.bin tokenizer.json vocabulary.txt; do
   fetch "$HF/Systran/faster-whisper-base.en/resolve/main/$f" "$ASSETS/whisper/$f"
 done
-# Better ears: Whisper large-v3 (most accurate). Stored once on the ISO, shared by both chip types.
-mkdir -p "$ASSETS/whisper-large-v3"
-for f in config.json model.bin preprocessor_config.json tokenizer.json vocabulary.json; do
-  fetch "$HF/Systran/faster-whisper-large-v3/resolve/main/$f" "$ASSETS/whisper-large-v3/$f"
+# Better ears: Whisper small.en (much better than base, small enough to keep the ISO one file). Stored once on the ISO, shared by both chip types.
+mkdir -p "$ASSETS/whisper-small.en"
+for f in config.json model.bin tokenizer.json vocabulary.txt; do
+  fetch "$HF/Systran/faster-whisper-small.en/resolve/main/$f" "$ASSETS/whisper-small.en/$f"
 done
 fetch "$HF/rhasspy/piper-voices/resolve/main/en/en_GB/alan/medium/en_GB-alan-medium.onnx" "$ASSETS/voice/voice.onnx"
 fetch "$HF/rhasspy/piper-voices/resolve/main/en/en_GB/alan/medium/en_GB-alan-medium.onnx.json" "$ASSETS/voice/voice.onnx.json"
@@ -220,13 +220,14 @@ EOF
   rm -f "$ISO/casper/$CPU/filesystem.squashfs"
   mksquashfs "$R" "$ISO/casper/$CPU/filesystem.squashfs" -comp xz -b 1M -Xdict-size 100% -noappend -quiet \
     -e .base-done boot/grub
+  ls -lh "$ISO/casper/$CPU/"
   du -sx --block-size=1 "$R" | cut -f1 > "$ISO/casper/$CPU/filesystem.size"
 }
 
 for a in $ARCHES; do build_arch "$a"; done
 
 # ---------------------------------------------------------------- boot menu (shared)
-mkdir -p "$ISO/models"; cp -r "$ASSETS/whisper-large-v3" "$ISO/models/"
+mkdir -p "$ISO/models"; cp -r "$ASSETS/whisper-small.en" "$ISO/models/"
 say "Making the boot menu"
 cat > "$ISO/boot/grub/grub.cfg" <<'EOF'
 set timeout=2

@@ -37,20 +37,13 @@ jobs:
           echo "ISO size: $((SIZE/1024/1024)) MB"
           TAG="build-${{ github.run_number }}"
           sha256sum courage-os.iso | cut -d' ' -f1 > courage-os.iso.sha256
-          if [ "$SIZE" -lt 2000000000 ]; then
-            FILES="courage-os.iso courage-os.iso.sha256"
-            HOW="Download **courage-os.iso**."
-          else
-            split -b 1900m -d -a 1 courage-os.iso courage-os.iso.part
-            FILES="$(ls courage-os.iso.part*) courage-os.iso.sha256"
-            HOW="GitHub only allows files under 2 GB here, so the ISO is in pieces. Download every **courage-os.iso.part** file into your Downloads folder, then open Terminal on your Mac and paste:
-
-          \`\`\`
-          cd ~/Downloads && cat courage-os.iso.part* > courage-os.iso
-          \`\`\`
-
-          That joins them into **courage-os.iso**. (Or download it as one full **courage-os.iso**, no zip, from this build's Artifacts on the Actions page.)"
+          ls -l casper 2>/dev/null || true
+          if [ "$SIZE" -ge 2000000000 ]; then
+            echo "::error::ISO is $((SIZE/1000/1000)) MB - over GitHub's 2 GB single-file limit. Not splitting it."
+            exit 1
           fi
+          FILES="courage-os.iso courage-os.iso.sha256"
+          HOW="Download **courage-os.iso**. It's the whole OS in one file, for Intel/AMD PCs, Intel Macs and Apple M-chip Macs (UTM)."
           cat > notes.md <<EOF
           $HOW
 
