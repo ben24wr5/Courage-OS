@@ -252,8 +252,8 @@ done
 
 say "Writing courage-os.iso"
 xorriso -as mkisofs -iso-level 3 -full-iso9660-filenames -joliet -joliet-long -rational-rock \
-  -volid COURAGE_OS \
-  -append_partition 2 0xef "$EFI_IMG" -appended_part_as_gpt \
+  -volid COURAGE_OS -partition_offset 16 \
+  -append_partition 2 0xef "$EFI_IMG" -appended_part_as_gpt -iso_mbr_part_type a2a0d0eb-e5b9-3344-87c0-68b6b72699c7 \
   -e '--interval:appended_partition_2:all::' -no-emul-boot \
   -output "$OUT" "$ISO"
 
