@@ -81,7 +81,7 @@ build_arch() {
   rm -rf "$R/opt/courage"; mkdir -p "$R/opt/courage/models"
   cp -r "$HERE/app" "$R/opt/courage/app"
   cp "$ASSETS/DotGothic16.ttf" "$R/opt/courage/app/courage/screen/"
-  cp -r "$ASSETS/whisper" "$ASSETS/voice" "$R/opt/courage/models/"
+  cp -r "$ASSETS/voice" "$R/opt/courage/models/"  # the ears live once on the ISO, not in each half
   cp "$HERE/app/update.sh" "$R/opt/courage/update.sh"
   chmod +x "$R/opt/courage/update.sh" "$R/opt/courage/app/"*.sh "$R/opt/courage/app/"*.py
 
@@ -193,7 +193,7 @@ grub-mkstandalone -O $CPU-efi -o /tmp/grub.efi \
 # drop firmware for server cards, phones and NVIDIA (the screen still works without it),
 # keep Wi-Fi, Bluetooth and Intel/AMD graphics.
 cd /lib/firmware 2>/dev/null && rm -rf nvidia mellanox netronome qed liquidio cxgb4 mrvl qcom dpaa2 bnx2x \
-  ql2* phanfw* myri10ge* cbfw* ctfw* intel/ipu intel/vpu amdtee mediatek/mt8* ti-keystone vsc 2>/dev/null; cd /
+  ql2* phanfw* myri10ge* cbfw* ctfw* intel/ipu intel/vpu amdtee mediatek/mt8* ti-keystone vsc imx meson rockchip s5p* cnm amlogic qat* hfi1_* dvb-* v4l-* isci cavium qlogic 2>/dev/null; cd /
 find /opt/courage/venv -name '__pycache__' -prune -exec rm -rf {} + 2>/dev/null || true
 find /opt/courage/venv -type d -name tests -prune -exec rm -rf {} + 2>/dev/null || true
 rm -rf /usr/share/doc/* /usr/src/* /var/cache/* 2>/dev/null || true
@@ -219,7 +219,7 @@ EOF
   mounts=()
   rm -f "$ISO/casper/$CPU/filesystem.squashfs"
   mksquashfs "$R" "$ISO/casper/$CPU/filesystem.squashfs" -comp xz -b 1M -Xdict-size 100% -noappend -quiet \
-    -e .base-done boot/grub
+    -e .base-done boot
   ls -lh "$ISO/casper/$CPU/"
   du -sx --block-size=1 "$R" | cut -f1 > "$ISO/casper/$CPU/filesystem.size"
 }
